@@ -30,14 +30,35 @@ import org.junit.Test;
 public class CassandraServiceTest {
 
 	CassandraService service;
+	Config config = new Config();
+	Keyspace keyspace;
 	
 	@Before
-	public void start() throws TTransportException, IOException {
+	public void start() throws Exception {
 		CassandraDataCleaner cleaner = new CassandraDataCleaner();
 		cleaner.prepare();
 		
 		service = new CassandraService();
 		service.start();
+		
+		Cluster cluster = HFactory.getOrCreateCluster(config.getCassandraCluster(), config.getCassandraHostAndPort());
+		
+		KeyspaceDefinition keyspaceDef = cluster.describeKeyspace("TestKeyspace");
+		if (keyspaceDef == null) {
+		
+			ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(
+					"TestKeyspace", "ColumnFamilyName", ComparatorType.BYTESTYPE);
+	
+			KeyspaceDefinition newKeyspace = HFactory.createKeyspaceDefinition(
+					"TestKeyspace", ThriftKsDef.DEF_STRATEGY_CLASS,
+					1, Arrays.asList(cfDef));
+			// Add the schema to the cluster.
+			// "true" as the second param means that Hector will block until all
+			// nodes see the change.
+			cluster.addKeyspace(newKeyspace, true);
+		}
+		
+		keyspace = HFactory.createKeyspace("TestKeyspace", cluster);
 	}
 	
 	@After
@@ -47,48 +68,22 @@ public class CassandraServiceTest {
 	
 	@Test
 	public void doStuff() {
-		Cluster cluster = HFactory.getOrCreateCluster("test-cluster",
-				"localhost:9160");
-		
-		KeyspaceDefinition keyspaceDef = cluster.describeKeyspace("MyKeyspace");
-		if (keyspaceDef == null) {
-		
-			ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(
-					"MyKeyspace", "ColumnFamilyName", ComparatorType.BYTESTYPE);
-	
-			KeyspaceDefinition newKeyspace = HFactory.createKeyspaceDefinition(
-					"MyKeyspace", ThriftKsDef.DEF_STRATEGY_CLASS,
-					1, Arrays.asList(cfDef));
-			// Add the schema to the cluster.
-			// "true" as the second param means that Hector will block until all
-			// nodes see the change.
-			cluster.addKeyspace(newKeyspace, true);
-		}
-		
-		Keyspace ksp = HFactory.createKeyspace("MyKeyspace", cluster);
 		
 		ColumnFamilyTemplate<String, String> template =
-                new ThriftColumnFamilyTemplate<String, String>(ksp,
+                new ThriftColumnFamilyTemplate<String, String>(keyspace,
                                                                "ColumnFamilyName",
                                                                StringSerializer.get(),
                                                                StringSerializer.get());
 		
 		ColumnFamilyUpdater<String, String> updater = template.createUpdater("a key");
-		updater.setString("domain", "www.datastax.com");
+		updater.setString("test", "tuxedo");
 		updater.setLong("time", System.currentTimeMillis());
 
-		try {
-		    template.update(updater);
-		} catch (HectorException e) {
-		    // do something ...
-		}
+		template.update(updater);
 		
-		try {
-		    ColumnFamilyResult<String, String> res = template.queryColumns("a key");
-		    assertEquals( "www.datastax.com", res.getString("domain") );
-		    // value should be "www.datastax.com" as per our previous insertion.
-		} catch (HectorException e) {
-		    // do something ...
-		}
+		
+	    ColumnFamilyResult<String, String> res = template.queryColumns("a key");
+	    assertEquals( "tuxedo", res.getString("test") );
+		
 	}
 }

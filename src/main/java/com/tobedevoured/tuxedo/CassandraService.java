@@ -11,8 +11,8 @@ public class CassandraService {
 	EmbeddedCassandra embeddedCassandra;
 	Thread cassandraThread;
 	
-	public CassandraService() throws TTransportException, IOException {
-		embeddedCassandra = new EmbeddedCassandra();
+	public CassandraService() throws Exception {
+		embeddedCassandra = new EmbeddedCassandra(new Config());
 		embeddedCassandra.init();
 	}
 	

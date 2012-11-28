@@ -1,9 +1,12 @@
 package com.tobedevoured.tuxedo;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.service.CassandraDaemon;
 import org.apache.thrift.transport.TTransportException;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -22,23 +25,18 @@ import org.littleshoot.proxy.SelfSignedKeyStoreManager;
  */
 public class EmbeddedCassandra implements Runnable {
 	CassandraDaemon cassandraDaemon;
+	Config config;
+	
+	public EmbeddedCassandra(Config config) {
+		this.config = config;
+	}
 
-	public void init() throws TTransportException, IOException {
+	public void init() throws Exception {
 		cassandraDaemon = new CassandraDaemon();
 		cassandraDaemon.init(null);
 	}
 
 	public void run() {
 		cassandraDaemon.start();
-	}
-
-	public static void main(String[] args) throws TTransportException,
-			IOException, InterruptedException {
-//		App app = new App();
-//		app.init();
-//		Thread t = new Thread(app);
-//		t.setDaemon(true);
-//		t.start();
-
 	}
 }

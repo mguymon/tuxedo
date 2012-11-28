@@ -16,8 +16,15 @@ public class ConfigTest {
 	
 	@Test
 	public void defaults() {
-		assertEquals( 8000, config.getProxyPort() );
+		assertEquals( 8001, config.getProxyPort() );
+		
 		assertEquals( "localhost", config.getWebHost() );
-		assertEquals( 3000, config.getWebPort() );
+		assertEquals( 3001, config.getWebPort() );
+		assertEquals( "localhost:3001", config.getWebHostAndPort() );
+		
+		assertEquals( "localhost", config.getCassandraHost() );
+		assertEquals( 9160, config.getCassandraPort() );
+		assertEquals( "localhost:9160", config.getCassandraHostAndPort() );
+		
 	}
 }
