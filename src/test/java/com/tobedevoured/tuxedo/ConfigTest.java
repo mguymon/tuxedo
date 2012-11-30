@@ -7,11 +7,11 @@ import org.junit.Test;
 
 public class ConfigTest {
 
-	private Config config;
+	private TypeSafeConfig config;
 	
 	@Before
 	public void setup() {
-		config = new Config();
+		config = new TypeSafeConfig();
 	}
 	
 	@Test

@@ -1,89 +1,93 @@
 package com.tobedevoured.tuxedo;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-import java.util.Arrays;
-
-import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.cassandra.service.ThriftKsDef;
-import me.prettyprint.cassandra.service.template.ColumnFamilyResult;
-import me.prettyprint.cassandra.service.template.ColumnFamilyTemplate;
-import me.prettyprint.cassandra.service.template.ColumnFamilyUpdater;
-import me.prettyprint.cassandra.service.template.ThriftColumnFamilyTemplate;
-import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
-import me.prettyprint.hector.api.ddl.ComparatorType;
-import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
-import me.prettyprint.hector.api.exceptions.HectorException;
-import me.prettyprint.hector.api.factory.HFactory;
-
-import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * Unit test for simple App.
- */
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.netflix.astyanax.AstyanaxContext;
+import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.MutationBatch;
+import com.netflix.astyanax.connectionpool.OperationResult;
+import com.netflix.astyanax.connectionpool.exceptions.BadRequestException;
+import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
+import com.netflix.astyanax.ddl.ColumnFamilyDefinition;
+import com.netflix.astyanax.ddl.KeyspaceDefinition;
+import com.netflix.astyanax.model.ColumnFamily;
+import com.netflix.astyanax.model.ColumnList;
+import com.netflix.astyanax.serializers.StringSerializer;
+import com.tobedevoured.tuxedo.cassandra.CassandraModule;
+import com.tobedevoured.tuxedo.cassandra.CassandraService;
+
 public class CassandraServiceTest {
 
-	CassandraService service;
-	Config config = new Config();
-	Keyspace keyspace;
-	
-	@Before
-	public void start() throws Exception {
-		CassandraDataCleaner cleaner = new CassandraDataCleaner();
-		cleaner.prepare();
-		
-		service = new CassandraService();
-		service.start();
-		
-		Cluster cluster = HFactory.getOrCreateCluster(config.getCassandraCluster(), config.getCassandraHostAndPort());
-		
-		KeyspaceDefinition keyspaceDef = cluster.describeKeyspace("TestKeyspace");
-		if (keyspaceDef == null) {
-		
-			ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(
-					"TestKeyspace", "ColumnFamilyName", ComparatorType.BYTESTYPE);
-	
-			KeyspaceDefinition newKeyspace = HFactory.createKeyspaceDefinition(
-					"TestKeyspace", ThriftKsDef.DEF_STRATEGY_CLASS,
-					1, Arrays.asList(cfDef));
-			// Add the schema to the cluster.
-			// "true" as the second param means that Hector will block until all
-			// nodes see the change.
-			cluster.addKeyspace(newKeyspace, true);
-		}
-		
-		keyspace = HFactory.createKeyspace("TestKeyspace", cluster);
-	}
-	
-	@After
-	public void stop() {
-		service.stop();
-	}
-	
-	@Test
-	public void doStuff() {
-		
-		ColumnFamilyTemplate<String, String> template =
-                new ThriftColumnFamilyTemplate<String, String>(keyspace,
-                                                               "ColumnFamilyName",
-                                                               StringSerializer.get(),
-                                                               StringSerializer.get());
-		
-		ColumnFamilyUpdater<String, String> updater = template.createUpdater("a key");
-		updater.setString("test", "tuxedo");
-		updater.setLong("time", System.currentTimeMillis());
+    public static ColumnFamily<String, String> CF_TEST = 
+            ColumnFamily.newColumnFamily("CassandraServiceTest", 
+                    StringSerializer.get(),
+                    StringSerializer.get());
 
-		template.update(updater);
-		
-		
-	    ColumnFamilyResult<String, String> res = template.queryColumns("a key");
-	    assertEquals( "tuxedo", res.getString("test") );
-		
-	}
+    Injector injector = Guice.createInjector(new ConfigModule())
+            .createChildInjector(new CassandraModule());
+    IConfig config = injector.getInstance(IConfig.class);
+    IService service = injector.getInstance(CassandraService.class);
+    AstyanaxContext<Keyspace> context = injector.getInstance(AstyanaxContext.class);
+
+    @Before
+    public void start() throws Exception {
+        CassandraDataCleaner cleaner = new CassandraDataCleaner();
+        cleaner.prepare();
+
+        service.start();
+
+        Thread.sleep(500);
+
+        Keyspace keyspace = context.getEntity();
+
+        KeyspaceDefinition keyspaceDef = null;
+        try {
+            keyspaceDef = keyspace.describeKeyspace();
+        } catch (BadRequestException e) {
+
+            keyspace.createKeyspace(ImmutableMap
+                    .<String, Object> builder()
+                    .put("strategy_options",
+                            ImmutableMap.<String, Object> builder()
+                                    .put("replication_factor", "1").build())
+                    .put("strategy_class", "SimpleStrategy").build());
+            keyspaceDef = keyspace.describeKeyspace();
+        }
+
+        ColumnFamilyDefinition cfDef = keyspaceDef.getColumnFamily(CF_TEST
+                .getName());
+        if (cfDef == null) {
+            keyspace.createColumnFamily(CF_TEST, null);
+        }
+
+    }
+
+    @After
+    public void stop() throws ServiceException {
+        service.stop();
+    }
+
+    @Test
+    public void doStuff() throws ConnectionException {
+        Keyspace keyspace = context.getEntity();
+        MutationBatch mutation = keyspace.prepareMutationBatch();
+
+        mutation.withRow(CF_TEST, "test").putColumn("test column", "test val", null);
+
+        mutation.execute();
+
+        OperationResult<ColumnList<String>> result = 
+           keyspace.prepareQuery(CF_TEST).getKey("test").execute();
+        ColumnList<String> columns = result.getResult();
+
+        assertEquals("test val", columns.getColumnByName("test column").getStringValue());
+
+    }
 }

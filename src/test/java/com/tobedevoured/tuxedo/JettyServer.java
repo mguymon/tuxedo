@@ -6,7 +6,7 @@ import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerList;
 import org.mortbay.jetty.handler.ResourceHandler;
 
-public class JettyServer {
+public class JettyServer implements IService {
 
 	Server server;
 	int port;
@@ -15,7 +15,7 @@ public class JettyServer {
 		this.port = port;
 	}
 	
-	public void start() throws Exception {
+	public void start() throws ServiceException {
 		server = new Server(port);
  
         ResourceHandler resourceHandler = new ResourceHandler();
@@ -25,11 +25,19 @@ public class JettyServer {
         handlers.setHandlers(new Handler[] { resourceHandler, new DefaultHandler() });
         server.setHandler(handlers);
  
-    	server.start();
+    	try {
+            server.start();
+        } catch (Exception e) {
+            throw new ServiceException(e);
+        }
 	}
 	
-	public void stop() throws Exception {
-		server.stop();
+	public void stop() throws ServiceException {
+		try {
+            server.stop();
+        } catch (Exception e) {
+            throw new ServiceException(e);
+        }
 	}
 	
 	public static void main(String[] args) throws Exception {

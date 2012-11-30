@@ -11,26 +11,32 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.tobedevoured.tuxedo.cassandra.CassandraModule;
+import com.tobedevoured.tuxedo.cassandra.CassandraService;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public class ProxyServiceTest {
 
-	private static JettyServer jetty;
-	private static Config config;
-	private ProxyService proxyService;
+    static Injector injector = Guice.createInjector(new ConfigModule()).createChildInjector(new ProxyModule());
+    static IService service = injector.getInstance(CassandraService.class);
+    static IConfig config = injector.getInstance(IConfig.class);
+    static JettyServer jetty;
+    
+	ProxyService proxyService = injector.getInstance(ProxyService.class);
 	
 	@BeforeClass
 	public static void setupJetty() throws Exception {
-		config = new Config();
-		
 		jetty = new JettyServer(config.getWebPort());
 		jetty.start();
 	}
 	
 	@Before
 	public void setupProxy() {
-		proxyService = new ProxyService(config);
 		proxyService.start();
 	}
 	

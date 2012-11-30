@@ -11,19 +11,19 @@ import org.littleshoot.proxy.HttpResponseFilters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProxyService {
+import com.google.inject.Inject;
+
+public class ProxyService implements IService {
 	static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
-	Config config;
+	IConfig config;
 	HttpProxyServer server;
 	String webHostAndPort;
 	
-	public ProxyService(Config config) {
+	@Inject
+	public ProxyService(IConfig config) {
 		this.config = config;
 		
-		this.webHostAndPort = new StringBuilder( config.getWebHost() )
-			.append( ":" )
-			.append( config.getWebPort() )
-			.toString();
+		this.webHostAndPort = config.getWebHostAndPort();
 
 		final HttpRequestFilter requestFilter = new HttpRequestFilter() {
 
