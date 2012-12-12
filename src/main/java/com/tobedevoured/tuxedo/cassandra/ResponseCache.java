@@ -54,7 +54,7 @@ public class ResponseCache {
          ColumnList<String> columns = result.getResult();
               
         String response = null;
-        if ( columns != null ) {
+        if ( !columns.isEmpty() ) {
             Column column = columns.getColumnByName("response");
             if ( column != null ) {
                 response = column.getStringValue();
@@ -62,6 +62,23 @@ public class ResponseCache {
         }
         
         return response;
+    }
+    
+    public boolean isCached(String path) throws ConnectionException {
+        Keyspace keyspace = context.getEntity();
+        OperationResult<ColumnList<String>> result =
+                keyspace.prepareQuery(CF_RESPONSE_CACHE)
+                  .getKey(path)
+                  .execute();
+         ColumnList<String> columns = result.getResult();
+         
+         return !columns.isEmpty();
+    }
+    
+    @Command
+    @CommandParam(name = "path", type = String.class)
+    public void cacheResponse(String path) throws ConnectionException {
+        cacheResponse(path, null, null);
     }
     
     public void cacheResponse(String path, String response) throws ConnectionException {
@@ -73,7 +90,7 @@ public class ResponseCache {
         MutationBatch mutation = keyspace.prepareMutationBatch();
 
         ColumnListMutation<String> listMutation = mutation.withRow(CF_RESPONSE_CACHE, path)
-          .putColumn("response", response, ttl)
+          .putColumnIfNotNull("response", response, ttl)
           .putColumn("created_at", System.currentTimeMillis(), null);
      
          mutation.execute();

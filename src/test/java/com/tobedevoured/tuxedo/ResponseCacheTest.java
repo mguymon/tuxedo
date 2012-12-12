@@ -7,8 +7,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;

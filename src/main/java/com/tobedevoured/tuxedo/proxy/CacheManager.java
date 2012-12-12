@@ -31,11 +31,7 @@ public class CacheManager implements ProxyCacheManager {
     ResponseCache responseCache;
     
     public CacheManager() {
-        try {
-           responseCache = DependencyManager.instance.getInstance(ResponseCache.class);
-        } catch (CommandException e) {
-           logger.error( "Failed to create ResponseCache instance", e );
-        }
+       responseCache = DependencyManager.instance.getInstance(ResponseCache.class);
     }
     
     @Override
@@ -79,13 +75,25 @@ public class CacheManager implements ProxyCacheManager {
             HttpResponse responseToCache =(HttpResponse) response; 
             if (!responseToCache.isChunked()) {
                 URI uri = URI.create( originalRequest.getUri() );
-                String responseHtml = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
-                
+                String path = uri.getPath();
+                boolean isCached = false;
                 try {
-                    responseCache.cacheResponse(uri.getPath(), responseHtml );
+                    isCached = responseCache.isCached(path);
                 } catch (ConnectionException e) {
-                    logger.error("Failed to cache response to: " + uri.getPath(), e);
+                    logger.error("Failed to access ResponseCache", e);
+                    return null;
                 }
+                
+                if (isCached) {
+                    String responseHtml = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
+                    
+                    try {
+                        responseCache.cacheResponse(path, responseHtml );
+                    } catch (ConnectionException e) {
+                        logger.error("Failed to cache response to: " + uri.getPath(), e);
+                    }
+                }
+                
             }            
         }
         return null;
