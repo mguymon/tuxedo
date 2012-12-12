@@ -55,6 +55,7 @@ public class CacheManager implements ProxyCacheManager {
             if (cache.isPresent()) {
                 logger.info("Using cache for " + path );
                 final String statusLine = "HTTP/1.1 200 OK\r\n";
+                
                 final String headers =
                         "Date: "+ProxyUtils.httpDate()+"\r\n"+
                         "Content-Length: "+ cache.get().length() + "\r\n"+

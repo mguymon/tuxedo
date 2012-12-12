@@ -22,11 +22,7 @@ public class Migrations implements IMigrations {
     public Migrations(AstyanaxContext<Keyspace> context) {
         this.context = context;
     }
-    
-    /* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IMigrations#createKeyspace()
-     */
-    @Override
+   
     @Command
     public void createKeyspace() throws ConnectionException {
        Keyspace keyspace = context.getEntity();
@@ -41,10 +37,6 @@ public class Migrations implements IMigrations {
         
     }
     
-    /* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IMigrations#deleteKeyspace()
-     */
-    @Override
     @Command
     public void deleteKeyspace() throws ConnectionException {
        Keyspace keyspace = context.getEntity();

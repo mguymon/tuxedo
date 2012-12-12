@@ -26,7 +26,9 @@ public class ContextProvider implements Provider<AstyanaxContext> {
             .forCluster(config.getCassandraCluster())
             .forKeyspace(config.getCassandraKeyspace())
             .withAstyanaxConfiguration(
-                    new AstyanaxConfigurationImpl().setDiscoveryType(NodeDiscoveryType.NONE)
+                new AstyanaxConfigurationImpl()
+                    .setDiscoveryType(NodeDiscoveryType.NONE)
+                    .setCqlVersion("3.0.0")
             )
         .withConnectionPoolConfiguration(
             new ConnectionPoolConfigurationImpl(config.getCassandraKeyspace() + "Pool")

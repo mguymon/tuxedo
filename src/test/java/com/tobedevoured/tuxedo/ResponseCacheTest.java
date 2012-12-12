@@ -1,11 +1,14 @@
 package com.tobedevoured.tuxedo;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +26,15 @@ import com.tobedevoured.tuxedo.cassandra.ResponseCache;
 
 public class ResponseCacheTest {
     
-    Injector injector = Guice.createInjector(new ConfigModule()).createChildInjector(new CassandraModule());
-    IConfig config = injector.getInstance(IConfig.class);
-    IService service = injector.getInstance(CassandraService.class);
-    AstyanaxContext<Keyspace> context = injector.getInstance(AstyanaxContext.class);
+    static Injector injector = Guice.createInjector(new ConfigModule()).createChildInjector(new CassandraModule());
+    static IConfig config = injector.getInstance(IConfig.class);
+    static IService service = injector.getInstance(CassandraService.class);
+    static AstyanaxContext<Keyspace> context = injector.getInstance(AstyanaxContext.class);
     ResponseCache responseCache = injector.getInstance(ResponseCache.class);
     
     
-    @Before
-    public void start() throws Exception {
+    @BeforeClass
+    public static void start() throws Exception {
         CassandraDataCleaner cleaner = new CassandraDataCleaner();
         cleaner.prepare();
         
@@ -60,8 +63,8 @@ public class ResponseCacheTest {
         }
     }
     
-    @After
-    public void stop() throws ServiceException {
+    @AfterClass
+    public static void stop() throws ServiceException {
         service.stop();
     }
     
@@ -72,5 +75,24 @@ public class ResponseCacheTest {
         String response = responseCache.getResponse("/a/test/path");
         
         assertEquals( "blah blah blah", response );
+    }
+    
+    @Test
+    public void ttlShouldMatter() throws ConnectionException, InterruptedException {
+        responseCache.cacheResponse( "/an/another/path", "waa waa waa", 2 );
+        assertEquals( "waa waa waa", responseCache.getResponse("/an/another/path") );
+        
+        Thread.sleep(2000);
+        
+        assertNull("Response should be expired", responseCache.getResponse("/an/another/path") );
+    }
+    
+    @Test 
+    public void clearCache() throws ConnectionException, InterruptedException {
+        responseCache.cacheResponse( "/a/test/path", "blah blah blah" );
+        assertEquals( "blah blah blah", responseCache.getResponse("/a/test/path") );
+        
+        responseCache.clearCache("/a/test/path");
+        assertNull("Response should be cleared", responseCache.getResponse("/a/test/path") );
     }
 }
