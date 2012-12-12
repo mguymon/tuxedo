@@ -1,16 +1,10 @@
 package com.tobedevoured.tuxedo;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
@@ -20,17 +14,16 @@ import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.netflix.astyanax.ddl.ColumnFamilyDefinition;
 import com.netflix.astyanax.ddl.KeyspaceDefinition;
-import com.tobedevoured.tuxedo.cassandra.CassandraModule;
 import com.tobedevoured.tuxedo.cassandra.CassandraService;
 import com.tobedevoured.tuxedo.cassandra.ResponseCache;
+import com.tobedevoured.tuxedo.command.DependencyManager;
 
 public class ResponseCacheTest {
     
-    static Injector injector = Guice.createInjector(new ConfigModule()).createChildInjector(new CassandraModule());
-    static IConfig config = injector.getInstance(IConfig.class);
-    static IService service = injector.getInstance(CassandraService.class);
-    static AstyanaxContext<Keyspace> context = injector.getInstance(AstyanaxContext.class);
-    ResponseCache responseCache = injector.getInstance(ResponseCache.class);
+    static IConfig config = DependencyManager.instance.getInstance(IConfig.class);
+    static IService service = DependencyManager.instance.getInstance(CassandraService.class);
+    static AstyanaxContext<Keyspace> context = DependencyManager.instance.getInstance(AstyanaxContext.class);
+    ResponseCache responseCache = DependencyManager.instance.getInstance(ResponseCache.class);
     
     
     @BeforeClass

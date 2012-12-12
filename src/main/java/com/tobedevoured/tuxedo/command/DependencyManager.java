@@ -24,7 +24,7 @@ public class DependencyManager implements DependencyManagable {
         
     }    
 
-    public <T> T getTarget(Class<T> clazz) throws CommandException {
+    public <T> T getInstance(Class<T> clazz) {
         return instance.injector.getInstance(clazz);
     }
 

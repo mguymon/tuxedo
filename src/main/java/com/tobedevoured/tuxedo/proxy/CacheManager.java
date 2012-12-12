@@ -32,7 +32,7 @@ public class CacheManager implements ProxyCacheManager {
     
     public CacheManager() {
         try {
-           responseCache = DependencyManager.instance.getTarget(ResponseCache.class);
+           responseCache = DependencyManager.instance.getInstance(ResponseCache.class);
         } catch (CommandException e) {
            logger.error( "Failed to create ResponseCache instance", e );
         }
