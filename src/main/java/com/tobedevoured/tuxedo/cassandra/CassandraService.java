@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.cassandra.service.CassandraDaemon;
-import org.apache.thrift.transport.TTransportException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -19,7 +18,7 @@ import com.tobedevoured.tuxedo.IService;
 import com.tobedevoured.tuxedo.ServiceException;
 
 @ByYourCommand
-public class CassandraService implements IService {
+public class CassandraService implements ICassandraService {
 	
     private CassandraDaemon cassandraDaemon;
     private final ExecutorService service = Executors.newSingleThreadExecutor(

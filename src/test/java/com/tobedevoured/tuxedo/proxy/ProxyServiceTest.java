@@ -1,4 +1,4 @@
-package com.tobedevoured.tuxedo;
+package com.tobedevoured.tuxedo.proxy;
 
 import static org.junit.Assert.*;
 
@@ -14,8 +14,14 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.tobedevoured.tuxedo.ConfigModule;
+import com.tobedevoured.tuxedo.IConfig;
+import com.tobedevoured.tuxedo.IService;
+import com.tobedevoured.tuxedo.JettyServer;
 import com.tobedevoured.tuxedo.cassandra.CassandraModule;
 import com.tobedevoured.tuxedo.cassandra.CassandraService;
+import com.tobedevoured.tuxedo.proxy.ProxyModule;
+import com.tobedevoured.tuxedo.proxy.ProxyService;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -49,6 +55,7 @@ public class ProxyServiceTest {
 	public static void shutdownJetty() throws Exception {
 		jetty.stop();
 	}
+	
 	
 	@Test
 	public void proxy() throws Exception {

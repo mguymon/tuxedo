@@ -1,23 +1,50 @@
-package com.tobedevoured.tuxedo;
+package com.tobedevoured.tuxedo.proxy;
 
+import java.net.URI;
+import java.nio.charset.Charset;
+
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+
 import org.littleshoot.proxy.ChainProxyManager;
+import org.littleshoot.proxy.DefaultCachedHttpResponse;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
+import org.littleshoot.proxy.LittleProxyConfig;
+import org.littleshoot.proxy.ProxyUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
-public class ProxyService implements IService {
+import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
+import com.tobedevoured.command.CommandException;
+import com.tobedevoured.command.RunException;
+import com.tobedevoured.command.Runner;
+import com.tobedevoured.command.annotation.ByYourCommand;
+import com.tobedevoured.command.annotation.Command;
+import com.tobedevoured.tuxedo.IConfig;
+import com.tobedevoured.tuxedo.ServiceException;
+import com.tobedevoured.tuxedo.cassandra.ResponseCache;
+import com.tobedevoured.tuxedo.command.DependencyManager;
+
+@ByYourCommand
+public class ProxyService implements IProxyService {
 	static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
 	IConfig config;
 	HttpProxyServer server;
 	String webHostAndPort;
+	
+	public ProxyService() throws ServiceException {
+
+	}
+    
 	
 	@Inject
 	public ProxyService(IConfig config) {
@@ -25,6 +52,8 @@ public class ProxyService implements IService {
 		
 		this.webHostAndPort = config.getWebHostAndPort();
 
+		LittleProxyConfig.setProxyCacheManagerClass( CacheManager.class.getCanonicalName() );
+		
 		final HttpRequestFilter requestFilter = new HttpRequestFilter() {
 
 			public void filter(HttpRequest httpRequest) {
@@ -45,7 +74,8 @@ public class ProxyService implements IService {
 
 					public HttpResponse filterResponse(HttpRequest request, HttpResponse response) {						
 						
-						return response;
+					    return response;
+					    					    					
 					}
 
 					public int getMaxResponseSize() {
@@ -70,6 +100,7 @@ public class ProxyService implements IService {
 		);
 	}
 	
+	@Command(exit=false)
 	public void start() {
 		server.start();	
 	}
@@ -78,4 +109,7 @@ public class ProxyService implements IService {
 		server.stop();
 	}
 	
+    public static void main(String[] args) throws RunException {
+        Runner.run( args );
+    }
 }
