@@ -18,15 +18,10 @@ import com.tobedevoured.tuxedo.cache.Cache;
 public class Db4oService implements IDbService {
     ObjectContainer rootContainer;
     IConfig config;
-    EmbeddedConfiguration configuration;
     
     @Inject
     public Db4oService(IConfig config) {
         this.config = config;
-        
-        configuration = Db4oEmbedded.newConfiguration();
-        configuration.common().add(new UuidSupport());
-        configuration.file().generateCommitTimestamps(true);
         
     }
     
@@ -39,10 +34,24 @@ public class Db4oService implements IDbService {
         }
     }
     
-    public Cache findCacheByMessageId(final UUID messageId) {
+    public Cache findCacheById(final UUID id) {
         List<Cache> caches = rootContainer.query(new Predicate<Cache>() {
             public boolean match(Cache cache) {
-                return cache.messageId.equals(messageId);
+                return cache.id.equals(id);
+            }
+        });
+        
+        if ( caches.size() > 0 ) {
+            return caches.get(0);
+        } else {
+            return null;
+        }
+    }
+    
+    public Cache findCacheByPath(final String path) {
+        List<Cache> caches = rootContainer.query(new Predicate<Cache>() {
+            public boolean match(Cache cache) {
+                return cache.path.equals(path);
             }
         });
         
@@ -55,6 +64,10 @@ public class Db4oService implements IDbService {
     
     @Command
     public void start() {
+        EmbeddedConfiguration configuration;
+        configuration = Db4oEmbedded.newConfiguration();
+        configuration.common().add(new UuidSupport());
+        configuration.file().generateCommitTimestamps(true);
         rootContainer = Db4oEmbedded.openFile( configuration, config.getDbPath() );
     }
 

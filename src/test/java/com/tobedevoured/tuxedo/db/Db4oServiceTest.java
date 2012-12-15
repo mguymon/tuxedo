@@ -30,11 +30,39 @@ public class Db4oServiceTest {
     }
     
     @Test
-    public void storeAndFindCache() {
+    public void findCacheById() {
         Cache cache = new Cache();
         service.save( cache );
         
-        Cache queried = service.findCacheByMessageId( cache.messageId );
-        assertEquals(cache.messageId, queried.messageId);
+        Cache queried = service.findCacheById( cache.id );
+        assertEquals(cache.id, queried.id);
+    }
+    
+    @Test
+    public void findCacheByPath() {
+        Cache cache = new Cache();
+        cache.path = "/a/path";
+        service.save( cache );
+        
+        Cache queried = service.findCacheByPath( cache.path );
+        assertEquals(cache.id, queried.id);
+        assertEquals(cache.path, queried.path);
+    }
+    
+    public void update() {
+        Cache cache = new Cache();
+        cache.path = "/a/path";
+        service.save( cache );
+        
+        Cache queried = service.findCacheByPath( cache.path );
+        assertEquals(cache.id, queried.id);
+        assertEquals(cache.path, queried.path);
+        
+        cache.path = "/a/path2";
+        service.save( cache );
+        
+        queried = service.findCacheByPath( cache.path );
+        assertEquals(cache.id, queried.id);
+        assertEquals(cache.path, queried.path);
     }
 }

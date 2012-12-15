@@ -6,18 +6,20 @@ import java.util.UUID;
 import com.db4o.config.annotations.Indexed;
 
 public class Cache implements Serializable {
-    
-    private static final long serialVersionUID = 6527934795017018018L;
-    public String response;
+
+    @Indexed
+    public UUID id;
     
     @Indexed
-    public UUID messageId;
+    public String path;
+    public String response;
+    
     
     public Cache() {
         this(UUID.randomUUID());
     }
     
     public Cache(UUID messageId) {
-        this.messageId = messageId;
+        this.id = messageId;
     }
 }
