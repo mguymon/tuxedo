@@ -9,15 +9,7 @@ public interface IConfig {
     int getWebPort();
 
     String getWebHostAndPort();
-
-    String getCassandraHost();
-
-    int getCassandraPort();
-
-    String getCassandraHostAndPort();
-
-    String getCassandraCluster();
-
-    String getCassandraKeyspace();
+    
+    String getDbPath();
 
 }

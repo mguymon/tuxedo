@@ -13,7 +13,7 @@ public class TypeSafeConfig implements IConfig {
     
 	public static final String PROXY_KEY = "tuxedo.proxy.";
 	public static final String WEB_KEY = "tuxedo.web.";
-	public static final String CASSANDRA_KEY = "tuxedo.cassandra.";
+	public static final String DB_KEY = "tuxedo.db.";
 	
 	com.typesafe.config.Config config;
 	
@@ -23,76 +23,29 @@ public class TypeSafeConfig implements IConfig {
 		logger.debug( "config: {}", config );
 	}
 	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getProxyPort()
-     */
 	@Override
     public int getProxyPort() {
 		return config.getInt( StringUtils.join(PROXY_KEY, "port") );
 	}
 	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getWebHost()
-     */
 	@Override
     public String getWebHost() {
 		return config.getString( StringUtils.join(WEB_KEY, "host") );
 	}
 	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getWebPort()
-     */
 	@Override
     public int getWebPort() {
 		return config.getInt( StringUtils.join(WEB_KEY , "port") );
 	}
 	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getWebHostAndPort()
-     */
 	@Override
     public String getWebHostAndPort() {
 		return StringUtils.join(getWebHost(), ":", getWebPort());
 	}
 	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getCassandraHost()
-     */
-	@Override
-    public String getCassandraHost() {
-		return config.getString(StringUtils.join(CASSANDRA_KEY, "host"));
-	}
-	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getCassandraPort()
-     */
-	@Override
-    public int getCassandraPort() {
-		return config.getInt(StringUtils.join(CASSANDRA_KEY, "port"));
-	}
-	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getCassandraHostAndPort()
-     */
-	@Override
-    public String getCassandraHostAndPort() {
-		return StringUtils.join(getCassandraHost(), ":", getCassandraPort());
-	}
-	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getCassandraCluster()
-     */
-	@Override
-    public String getCassandraCluster() {
-		return config.getString(StringUtils.join(CASSANDRA_KEY, "cluster"));
-	}
-	
-	/* (non-Javadoc)
-     * @see com.tobedevoured.tuxedo.IConfig#getCassandraKeyspace()
-     */
-	@Override
-    public String getCassandraKeyspace() {
-	    return config.getString(StringUtils.join(CASSANDRA_KEY, "keyspace"));
-	}
+    @Override
+    public String getDbPath() {
+        return config.getString(StringUtils.join(DB_KEY, "path"));
+    }
 
 }

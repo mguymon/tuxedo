@@ -22,9 +22,5 @@ public class ConfigTest {
 		assertEquals( 3001, config.getWebPort() );
 		assertEquals( "localhost:3001", config.getWebHostAndPort() );
 		
-		assertEquals( "localhost", config.getCassandraHost() );
-		assertEquals( 9160, config.getCassandraPort() );
-		assertEquals( "localhost:9160", config.getCassandraHostAndPort() );
-		
 	}
 }

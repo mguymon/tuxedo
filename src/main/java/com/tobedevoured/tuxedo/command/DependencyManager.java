@@ -6,6 +6,7 @@ import com.tobedevoured.command.CommandException;
 import com.tobedevoured.command.DependencyManagable;
 import com.tobedevoured.tuxedo.ConfigModule;
 import com.tobedevoured.tuxedo.cache.CacheModule;
+import com.tobedevoured.tuxedo.db.DbModule;
 import com.tobedevoured.tuxedo.proxy.ProxyModule;
 
 public class DependencyManager implements DependencyManagable {
@@ -15,7 +16,7 @@ public class DependencyManager implements DependencyManagable {
         instance = new DependencyManager();
         instance.injector = 
            Guice.createInjector(new ConfigModule())
-                .createChildInjector(new ProxyModule(), new CacheModule());
+                .createChildInjector(new ProxyModule(), new CacheModule(), new DbModule());
     }
     
     Injector injector;
