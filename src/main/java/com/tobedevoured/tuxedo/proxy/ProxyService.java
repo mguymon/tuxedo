@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
 import com.tobedevoured.command.CommandException;
 import com.tobedevoured.command.RunException;
 import com.tobedevoured.command.Runner;
@@ -31,7 +30,6 @@ import com.tobedevoured.command.annotation.ByYourCommand;
 import com.tobedevoured.command.annotation.Command;
 import com.tobedevoured.tuxedo.IConfig;
 import com.tobedevoured.tuxedo.ServiceException;
-import com.tobedevoured.tuxedo.cassandra.ResponseCache;
 import com.tobedevoured.tuxedo.command.DependencyManager;
 
 @ByYourCommand
