@@ -16,6 +16,12 @@ public class TypeSafeConfig implements IConfig {
 	public static final String WEB_KEY = "tuxedo.web.";
 	public static final String DB_KEY = "tuxedo.db.";
 	
+	public int proxyPort;
+	public String webHost;
+	public int webPort;
+	public String dbPath;
+	public Boolean isDbDebug;
+	
 	Config config;
 	
 	public TypeSafeConfig() {
@@ -27,35 +33,36 @@ public class TypeSafeConfig implements IConfig {
 		    config = testConfig.withFallback(config);
 		}
 		logger.debug( "config: {}", config );
+		
+		proxyPort = config.getInt( StringUtils.join(PROXY_KEY, "port") );
+		webHost = config.getString( StringUtils.join(WEB_KEY, "host") );
+		webPort = config.getInt( StringUtils.join(WEB_KEY , "port") );
+		dbPath = config.getString(StringUtils.join(DB_KEY, "path"));
+		isDbDebug = config.getBoolean(StringUtils.join(DB_KEY, "debug"));
 	}
 	
-	@Override
     public int getProxyPort() {
-		return config.getInt( StringUtils.join(PROXY_KEY, "port") );
+		return proxyPort;
 	}
 	
-	@Override
     public String getWebHost() {
-		return config.getString( StringUtils.join(WEB_KEY, "host") );
+		return webHost;
 	}
 	
-	@Override
     public int getWebPort() {
-		return config.getInt( StringUtils.join(WEB_KEY , "port") );
+		return webPort;
 	}
 	
-	@Override
     public String getWebHostAndPort() {
 		return StringUtils.join(getWebHost(), ":", getWebPort());
 	}
 	
-    @Override
     public String getDbPath() {
-        return config.getString(StringUtils.join(DB_KEY, "path"));
+        return dbPath;
     }
     
     public Boolean isDbDebug() {
-        return config.getBoolean(StringUtils.join(DB_KEY, "debug"));
+        return isDbDebug;
     }
 
 }
