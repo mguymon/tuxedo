@@ -11,12 +11,11 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
 import com.tobedevoured.command.annotation.ByYourCommand;
 import com.tobedevoured.command.annotation.Command;
 import com.tobedevoured.tuxedo.IConfig;
-import com.tobedevoured.tuxedo.IService;
 import com.tobedevoured.tuxedo.ServiceException;
+import com.tobedevoured.tuxedo.db.Db4oService;
 
 @ByYourCommand
 public class CacheListener implements IMessageListener {
@@ -26,18 +25,21 @@ public class CacheListener implements IMessageListener {
     ITopic topic;
     IConfig config;
     HazelcastInstance hazelcast;
+    Db4oService dbService;
     
     @Inject
-    public CacheListener(IConfig config) {
+    public CacheListener(IConfig config, Db4oService dbService) {
         this.config = config;
+        this.dbService = dbService;
     }
     
-    public void onMessage(final Message<Cache> message) {
+    public void onMessage(final Message<CacheEvent> message) {
         logger.info("Message received: {}", message.toString());
-       
+        final CacheEvent cacheEvent = message.getMessageObject();
         messageExecutor.execute(new Runnable() {
             public void run() {
-                Cache cache = message.getMessageObject();
+                Cache cache = cacheEvent.getMessageObject();
+                dbService.store(cache);
             }
         });
     
@@ -59,7 +61,6 @@ public class CacheListener implements IMessageListener {
     @Command
     public void stop() throws ServiceException {
         topic.removeMessageListener(this);
-        hazelcast.shutdown();
     }
 
 }
