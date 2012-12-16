@@ -18,17 +18,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.inject.Inject;
 import com.tobedevoured.command.CommandException;
 import com.tobedevoured.tuxedo.ServiceException;
+import com.tobedevoured.tuxedo.cache.Cache;
 import com.tobedevoured.tuxedo.command.DependencyManager;
+import com.tobedevoured.tuxedo.db.Db4oService;
+import com.tobedevoured.tuxedo.db.IDbService;
 
 public class CacheManager implements ProxyCacheManager {
     static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
-    
     static Pattern extensions = Pattern.compile(".+\\.(ttf|png|gif|jpg|woff|js|css)$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     
+    Db4oService dbService;
+    
     public CacheManager() {
-        
+        this.dbService = (Db4oService) DependencyManager.instance.getInstance(IDbService.class);
     }
     
     @Override
@@ -37,29 +42,24 @@ public class CacheManager implements ProxyCacheManager {
         String path = uri.getPath();
         
         if ( !extensions.matcher(path).matches() ) {
-//            Optional<String> cache = Optional.absent();
-//            try {
-//                cache = Optional.fromNullable( responseCache.getResponse( path ) );
-//            } catch (ConnectionException e) {
-//                logger.error( "Failed to access ResponseCache", e);
-//                return false;
-//            }
-//            
-//            if (cache.isPresent()) {
-//                logger.info("Using cache for " + path );
-//                final String statusLine = "HTTP/1.1 200 OK\r\n";
-//                
-//                final String headers =
-//                        "Date: "+ProxyUtils.httpDate()+"\r\n"+
-//                        "Content-Length: "+ cache.get().length() + "\r\n"+
-//                        "Content-Type: text/html; charset=iso-8859-1\r\n" +
-//                        "\r\n";
-//                
-//                ProxyUtils.writeResponse(channel, statusLine, headers, cache.get());
-//                ProxyUtils.closeOnFlush(channel);
-//                
-//                return true;
-//            }
+            Optional<Cache> cacheCheck = Optional.fromNullable( dbService.findActiveCache(path) );
+            
+            if (cacheCheck.isPresent()) {
+                Cache cache = cacheCheck.get();
+                logger.info("Using cache for " + path );
+                final String statusLine = "HTTP/1.1 200 OK\r\n";
+                
+                final String headers =
+                        "Date: "+ProxyUtils.httpDate()+"\r\n"+
+                        "Content-Length: "+ cache.response.length() + "\r\n"+
+                        "Content-Type: text/html; charset=iso-8859-1\r\n" +
+                        "\r\n";
+                
+                ProxyUtils.writeResponse(channel, statusLine, headers, cache.response);
+                ProxyUtils.closeOnFlush(channel);
+                
+                return true;
+            }
         }
         
         return false;    
@@ -73,23 +73,16 @@ public class CacheManager implements ProxyCacheManager {
             if (!responseToCache.isChunked()) {
                 URI uri = URI.create( originalRequest.getUri() );
                 String path = uri.getPath();
-                boolean isCached = false;
-//                try {
-//                    isCached = responseCache.isCached(path);
-//                } catch (ConnectionException e) {
-//                    logger.error("Failed to access ResponseCache", e);
-//                    return null;
-//                }
-//                
-//                if (isCached) {
-//                    String responseHtml = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
-//                    
-//                    try {
-//                        responseCache.cacheResponse(path, responseHtml );
-//                    } catch (ConnectionException e) {
-//                        logger.error("Failed to cache response to: " + uri.getPath(), e);
-//                    }
-//                }
+                Optional<Cache> cacheCheck = Optional.fromNullable( dbService.findActiveCache(path) );
+                
+                if (cacheCheck.isPresent()) {
+                    Cache cache = cacheCheck.get();
+                    if ( cache.response == null && cache.lazy ) {
+                        String responseHtml = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
+                        cache.response = responseHtml;
+                        dbService.store(cache);
+                    }
+                }
                 
             }            
         }

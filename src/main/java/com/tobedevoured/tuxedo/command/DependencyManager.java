@@ -16,7 +16,7 @@ public class DependencyManager implements DependencyManagable {
         instance = new DependencyManager();
         instance.injector = 
            Guice.createInjector(new ConfigModule())
-                .createChildInjector(new ProxyModule(), new CacheModule(), new DbModule());
+                .createChildInjector(new CacheModule(), new DbModule(),new ProxyModule());
     }
     
     Injector injector;

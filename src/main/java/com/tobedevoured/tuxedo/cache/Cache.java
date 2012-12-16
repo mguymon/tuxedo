@@ -14,6 +14,7 @@ public class Cache implements Serializable {
     @Indexed
     public String path;
     public String response;
+    public boolean lazy = false;
 
     @Indexed
     public Date expiredAt;

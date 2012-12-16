@@ -98,9 +98,13 @@ public class Db4oService implements IDbService {
         EmbeddedConfiguration configuration;
         configuration = Db4oEmbedded.newConfiguration();
         configuration.common().add(new UuidSupport());
-        configuration.common().messageLevel(4);
-        configuration.common().diagnostic().addListener(new DiagnosticToConsole());
         configuration.file().generateCommitTimestamps(true);
+        
+        if (config.isDbDebug()) {
+            configuration.common().messageLevel(4);
+            configuration.common().diagnostic().addListener(new DiagnosticToConsole());
+        }
+        
         rootContainer = Db4oEmbedded.openFile( configuration, config.getDbPath() );
     }
 

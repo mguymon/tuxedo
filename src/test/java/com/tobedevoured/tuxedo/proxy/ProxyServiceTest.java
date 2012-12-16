@@ -18,6 +18,7 @@ import com.tobedevoured.tuxedo.ConfigModule;
 import com.tobedevoured.tuxedo.IConfig;
 import com.tobedevoured.tuxedo.IService;
 import com.tobedevoured.tuxedo.JettyServer;
+import com.tobedevoured.tuxedo.command.DependencyManager;
 import com.tobedevoured.tuxedo.proxy.ProxyModule;
 import com.tobedevoured.tuxedo.proxy.ProxyService;
 
@@ -26,11 +27,10 @@ import static org.hamcrest.Matchers.*;
 
 public class ProxyServiceTest {
 
-    static Injector injector = Guice.createInjector(new ConfigModule()).createChildInjector(new ProxyModule());
-    static IConfig config = injector.getInstance(IConfig.class);
+    static IConfig config = DependencyManager.instance.getInstance(IConfig.class);
     static JettyServer jetty;
     
-	ProxyService proxyService = injector.getInstance(ProxyService.class);
+	ProxyService proxyService = DependencyManager.instance.getInstance(ProxyService.class);
 	
 	@BeforeClass
 	public static void setupJetty() throws Exception {

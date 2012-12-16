@@ -1,5 +1,7 @@
 package com.tobedevoured.tuxedo.proxy;
 
+import org.littleshoot.proxy.ProxyCacheManager;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 

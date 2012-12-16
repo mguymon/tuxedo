@@ -7,7 +7,9 @@ public class DbModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(IDbService.class).to(Db4oService.class).in(Singleton.class);
+        
+        bind(IDbService.class).toProvider(DbProvider.class);
+        bind(Db4oService.class).toProvider(DbProvider.class);
     }
 
 }

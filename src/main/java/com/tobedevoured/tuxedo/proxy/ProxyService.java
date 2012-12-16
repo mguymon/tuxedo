@@ -31,6 +31,7 @@ import com.tobedevoured.command.annotation.Command;
 import com.tobedevoured.tuxedo.IConfig;
 import com.tobedevoured.tuxedo.ServiceException;
 import com.tobedevoured.tuxedo.command.DependencyManager;
+import com.tobedevoured.tuxedo.db.Db4oService;
 
 @ByYourCommand
 public class ProxyService implements IProxyService {
@@ -38,16 +39,12 @@ public class ProxyService implements IProxyService {
 	IConfig config;
 	HttpProxyServer server;
 	String webHostAndPort;
-	
-	public ProxyService() throws ServiceException {
-
-	}
-    
+	Db4oService db4oService;
 	
 	@Inject
-	public ProxyService(IConfig config) {
+	public ProxyService(IConfig config, Db4oService db4oService) {
 		this.config = config;
-		
+		this.db4oService = db4oService;
 		this.webHostAndPort = config.getWebHostAndPort();
 
 		LittleProxyConfig.setProxyCacheManagerClass( CacheManager.class.getCanonicalName() );
@@ -100,11 +97,13 @@ public class ProxyService implements IProxyService {
 	
 	@Command(exit=false)
 	public void start() {
+	    db4oService.start();
 		server.start();	
 	}
 	
 	public void stop() {
 		server.stop();
+		db4oService.stop();
 	}
 	
     public static void main(String[] args) throws RunException {

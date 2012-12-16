@@ -15,12 +15,12 @@ public class ConfigTest {
 	}
 	
 	@Test
-	public void defaults() {
+	public void testConfig() {
 		assertEquals( 8001, config.getProxyPort() );
 		
 		assertEquals( "localhost", config.getWebHost() );
-		assertEquals( 3001, config.getWebPort() );
-		assertEquals( "localhost:3001", config.getWebHostAndPort() );
+		assertEquals( 3000, config.getWebPort() );
+		assertEquals( "localhost:3000", config.getWebHostAndPort() );
 		
 	}
 }

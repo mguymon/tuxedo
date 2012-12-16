@@ -12,4 +12,6 @@ public interface IConfig {
     
     String getDbPath();
 
+    Boolean isDbDebug();
+
 }

@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 public class TypeSafeConfig implements IConfig {
@@ -15,11 +16,16 @@ public class TypeSafeConfig implements IConfig {
 	public static final String WEB_KEY = "tuxedo.web.";
 	public static final String DB_KEY = "tuxedo.db.";
 	
-	com.typesafe.config.Config config;
+	Config config;
 	
 	public TypeSafeConfig() {
 		config = ConfigFactory.load();
 		
+		
+		Config testConfig = ConfigFactory.load("test.conf");
+		if ( testConfig != null) {
+		    config = testConfig.withFallback(config);
+		}
 		logger.debug( "config: {}", config );
 	}
 	
@@ -46,6 +52,10 @@ public class TypeSafeConfig implements IConfig {
     @Override
     public String getDbPath() {
         return config.getString(StringUtils.join(DB_KEY, "path"));
+    }
+    
+    public Boolean isDbDebug() {
+        return config.getBoolean(StringUtils.join(DB_KEY, "debug"));
     }
 
 }
