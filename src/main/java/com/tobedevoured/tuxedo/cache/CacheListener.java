@@ -39,6 +39,28 @@ public class CacheListener implements IMessageListener {
         messageExecutor.execute(new Runnable() {
             public void run() {
                 Cache cache = cacheEvent.getMessageObject();
+                Cache dbCache = dbService.findCacheById(cache.id);
+                
+                // manually merge existing Cache
+                if ( dbCache != null ) {
+                    if (cache.lazy != null) {
+                        dbCache.lazy = cache.lazy;
+                    }
+                    
+                    if ( cache.path != null ) {
+                        dbCache.path = cache.path;
+                    }
+                    
+                    // Dates have to be set, since null is valid
+                    dbCache.publishedAt = cache.publishedAt;
+                    dbCache.expiredAt = cache.expiredAt;
+                    
+                    if ( cache.response !=null ) {
+                        dbCache.response = cache.response;
+                    }
+                    cache = dbCache;
+                }
+                
                 dbService.store(cache);
             }
         });
