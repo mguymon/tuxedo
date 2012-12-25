@@ -2,13 +2,10 @@ package com.tobedevoured.tuxedo.proxy;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -18,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
-import com.google.inject.Inject;
-import com.tobedevoured.command.CommandException;
-import com.tobedevoured.tuxedo.ServiceException;
 import com.tobedevoured.tuxedo.cache.Cache;
 import com.tobedevoured.tuxedo.command.DependencyManager;
 import com.tobedevoured.tuxedo.db.Db4oService;
@@ -78,8 +72,7 @@ public class CacheManager implements ProxyCacheManager {
                 if (cacheCheck.isPresent()) {
                     Cache cache = cacheCheck.get();
                     if ( cache.response == null && cache.lazy ) {
-                        String responseHtml = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
-                        cache.response = responseHtml;
+                        cache.response = responseToCache.getContent().duplicate().toString(Charset.defaultCharset());
                         dbService.store(cache);
                     }
                 }

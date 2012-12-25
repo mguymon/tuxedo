@@ -23,7 +23,7 @@ public class Cache implements Serializable {
     public Date publishedAt;
     
     public String response;
-    public Boolean lazy = Boolean.FALSE;
+    public Boolean lazy;
     public Date createdAt;
     public Date updatedAt;
     
@@ -34,5 +34,7 @@ public class Cache implements Serializable {
 
     public Cache(UUID messageId) {
         this.id = messageId;
+        this.publishedAt = new Date();
+        this.lazy = Boolean.FALSE;
     }
 }

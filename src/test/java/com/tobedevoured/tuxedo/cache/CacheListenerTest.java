@@ -4,26 +4,14 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.Date;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.hazelcast.core.Message;
-import com.tobedevoured.tuxedo.ConfigModule;
-import com.tobedevoured.tuxedo.IConfig;
 import com.tobedevoured.tuxedo.ServiceException;
 import com.tobedevoured.tuxedo.TypeSafeConfig;
-import com.tobedevoured.tuxedo.command.DependencyManager;
 import com.tobedevoured.tuxedo.db.Db4oService;
-import com.tobedevoured.tuxedo.proxy.ProxyModule;
 
 public class CacheListenerTest {
 

@@ -4,13 +4,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.db4o.Db4oEmbedded;
 import com.db4o.ObjectContainer;
 import com.db4o.ObjectSet;
 import com.db4o.config.EmbeddedConfiguration;
 import com.db4o.config.UuidSupport;
+import com.db4o.diagnostic.Diagnostic;
+import com.db4o.diagnostic.DiagnosticListener;
 import com.db4o.diagnostic.DiagnosticToConsole;
-import com.db4o.query.Predicate;
+import com.db4o.diagnostic.NativeQueryNotOptimized;
+import com.db4o.diagnostic.NativeQueryOptimizerNotLoaded;
 import com.db4o.query.Query;
 import com.google.inject.Inject;
 import com.tobedevoured.command.annotation.ByYourCommand;
@@ -20,6 +26,8 @@ import com.tobedevoured.tuxedo.cache.Cache;
 
 @ByYourCommand
 public class Db4oService implements IDbService {
+    private static Logger logger = LoggerFactory.getLogger(Db4oService.class);
+    
     ObjectContainer rootContainer;
     IConfig config;
     
@@ -63,13 +71,11 @@ public class Db4oService implements IDbService {
     }
     
     public List<Cache> findCacheByPath(final String path) {
-        List<Cache> caches = rootContainer.query(new Predicate<Cache>() {
-            public boolean match(Cache cache) {
-                return cache.path.equals(path);
-            }
-        });
-        
-        return caches;
+        Query query = rootContainer.query();
+        query.constrain(Cache.class);
+        query.descend("path").constrain(path).equal();
+        query.descend("publishedAt").orderDescending();
+        return query.execute();
     }
     
     public Cache findActiveCache(final String path) {
@@ -79,8 +85,7 @@ public class Db4oService implements IDbService {
         query.descend("path").constrain(path).equal();
         query.descend("expiredAt").constrain(now).greater()
             .or( query.descend("expiredAt").constrain(null).identity());
-        query.descend("publishedAt").constrain(now).smaller()
-            .or( query.descend("publishedAt").constrain(null).identity());
+        query.descend("publishedAt").constrain(now).smaller();
         query.descend("publishedAt").orderDescending();
         
         
@@ -103,6 +108,16 @@ public class Db4oService implements IDbService {
         if (config.isDbDebug()) {
             configuration.common().messageLevel(4);
             configuration.common().diagnostic().addListener(new DiagnosticToConsole());
+            configuration.common().diagnostic().addListener(new DiagnosticListener() {
+                @Override
+                public  void onDiagnostic(Diagnostic diagnostic) {
+                    if(diagnostic instanceof NativeQueryNotOptimized){
+                        logger.error("Query not optimized: {}", diagnostic);
+                    } else  if(diagnostic instanceof NativeQueryOptimizerNotLoaded){
+                        logger.error("Missing native query optimisation jars in classpath: {}", diagnostic);
+                    }
+                }
+            });
         }
         
         rootContainer = Db4oEmbedded.openFile( configuration, config.getDbPath() );
