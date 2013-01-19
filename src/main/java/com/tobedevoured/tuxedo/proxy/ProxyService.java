@@ -97,8 +97,8 @@ public class ProxyService implements IProxyService {
 	
 	@Command(exit=false)
 	public void start() {
-	    db4oService.start();
-		server.start();	
+		server.start();
+        db4oService.start();
 	}
 	
 	public void stop() {

@@ -30,6 +30,7 @@ public class Db4oService implements IDbService {
     
     ObjectContainer rootContainer;
     IConfig config;
+    boolean running = false;
     
     @Inject
     public Db4oService(IConfig config) {
@@ -55,6 +56,13 @@ public class Db4oService implements IDbService {
         } finally {
             container.close();
         }
+    }
+
+    public List<Cache> all() {
+        Query query = rootContainer.query();
+        query.constrain(Cache.class);
+
+        return query.execute();
     }
     
     public Cache findCacheById(final UUID id) {
@@ -121,11 +129,17 @@ public class Db4oService implements IDbService {
         }
         
         rootContainer = Db4oEmbedded.openFile( configuration, config.getDbPath() );
+        running = true;
+    }
+
+    public boolean isRunning() {
+        return isRunning();
     }
 
     @Command
     public void stop() {
         rootContainer.close();
         rootContainer = null;
+        running = false;
     }
 }

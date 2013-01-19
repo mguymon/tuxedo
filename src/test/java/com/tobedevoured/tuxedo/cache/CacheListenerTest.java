@@ -114,7 +114,7 @@ public class CacheListenerTest {
         cache.publishedAt = new Date();
         listener1.publish( cache );
         
-        Thread.sleep(1000);
+        Thread.sleep(1500);
         
         Cache queried = dbService1.findCacheByPath( cache.path ).get(0);
         assertNotNull("Cache should be found", queried);

@@ -1,21 +1,26 @@
 package com.tobedevoured.tuxedo.api;
 
-import com.strategicgains.hyperexpress.util.LinkUtils;
 import com.strategicgains.restexpress.Request;
 import com.strategicgains.restexpress.Response;
+
+import com.tobedevoured.tuxedo.cache.Cache;
+import com.tobedevoured.tuxedo.db.Db4oService;
+
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: zinger
- * Date: 12/24/12
- * Time: 7:35 PM
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class CacheController {
+
+    Db4oService dbService;
+
+    public CacheController(Db4oService dbService) {
+        this.dbService = dbService;
+    }
 
     public String create(Request request, Response response) {
         String newId = "42"; // Assume a new object created.
@@ -32,19 +37,37 @@ public class CacheController {
      *
      * @param request
      * @param response
-     * @return Best practice is to return the actual DTO or domain object here.  The Map returned from
-     *         this particular implementation is for demo purposes only.
      */
-    public Map<String, String> read(Request request, Response response) {
-        String id = request.getUrlDecodedHeader("id", "No ID supplied");
+    public List<Map<String,String>> index(Request request, Response response) {
 
-        // Normally one would return an actual DTO or domain object instead of a Map.  While returning a
-        // Map works, this particular implementation is for demonstration purposes... in leau of a domain
-        // model.
-        Map<String, String> result = new HashMap<String, String>();
-        result.put("id", id);
-        result.put("value", "something here");
-        return result;
+        List<Map<String,String>> data = new ArrayList();
+        List<Cache> caches = dbService.all();
+        for ( Cache cache: caches ) {
+            Map<String,String> map = new LinkedHashMap<>();
+            map.put("id", cache.id.toString() );
+            map.put("path", cache.path );
+            map.put("published_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.publishedAt ) );
+            map.put("expired_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.expiredAt ) );
+            data.add( map );
+        }
+
+        return data;
+    }
+
+    public Map<String,String> show(Request request, Response response) {
+        String id = request.getUrlDecodedHeader("id");
+        UUID uuid = UUID.fromString( id );
+        Cache cache = dbService.findCacheById( uuid );
+        Map<String,String> map = new LinkedHashMap<>();
+        map.put("id", cache.id.toString() );
+        map.put("path", cache.path );
+        map.put("response", cache.response);
+        map.put("lazy", String.valueOf( cache.lazy ) );
+        map.put("published_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.publishedAt ) );
+        map.put("created_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.createdAt ) );
+        map.put("expired_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.expiredAt ) );
+
+        return map;
     }
 
     public void update(Request request, Response response) {
