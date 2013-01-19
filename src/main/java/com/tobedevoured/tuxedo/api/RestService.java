@@ -28,7 +28,7 @@ public class RestService implements IApiService {
     @Command
     public void start() {
 
-        if ( this.dbService.isRunning() ) {
+        if ( !this.dbService.isRunning() ) {
             this.dbService.start();
         }
 
@@ -40,26 +40,25 @@ public class RestService implements IApiService {
         //        .addPostprocessor(new LastModifiedHeaderPostprocessor())
                 .addMessageObserver(new SimpleConsoleLogMessageObserver());
 
-        server.uri("/api/1/cache.{format}", controller)
+        server.uri("/api/1/caches.{format}", controller)
                 .action("index", HttpMethod.GET)
                 .name("index");
 
-        server.uri("/api/1/cache.{format}", controller)
+        server.uri("/api/1/caches.{format}", controller)
                 .method(HttpMethod.POST);
 
 
-        server.uri("/api/1/cache/{id}.{format}", controller)
+        server.uri("/api/1/caches/{id}.{format}", controller)
                 .action("show", HttpMethod.GET)
                 .name("show");
 
 
-        server.uri("/api/1/cache/{id}.{format}", controller)
+        server.uri("/api/1/caches/{id}.{format}", controller)
                 .action("update", HttpMethod.PUT)
                 .name("update");
 
 
         server.bind(9922);
-        server.awaitShutdown();
     }
 
     public void stop() throws ServiceException {

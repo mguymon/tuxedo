@@ -133,7 +133,7 @@ public class Db4oService implements IDbService {
     }
 
     public boolean isRunning() {
-        return isRunning();
+        return running;
     }
 
     @Command

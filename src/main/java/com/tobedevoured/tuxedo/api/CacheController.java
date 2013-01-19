@@ -38,36 +38,44 @@ public class CacheController {
      * @param request
      * @param response
      */
-    public List<Map<String,String>> index(Request request, Response response) {
+    public Map<String,Object> index(Request request, Response response) {
 
-        List<Map<String,String>> data = new ArrayList();
+        Map<String,Object> data = createResponseMap("success", "001");
+
+        List<Map<String,String>> cacheData = new ArrayList();
         List<Cache> caches = dbService.all();
         for ( Cache cache: caches ) {
             Map<String,String> map = new LinkedHashMap<>();
             map.put("id", cache.id.toString() );
             map.put("path", cache.path );
-            map.put("published_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.publishedAt ) );
-            map.put("expired_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.expiredAt ) );
-            data.add( map );
+            map.put("published_at", formatDate( cache.publishedAt ) );
+            map.put("expired_at", formatDate(cache.expiredAt));
+            cacheData.add( map );
         }
+
+        data.put("caches", cacheData );
 
         return data;
     }
 
-    public Map<String,String> show(Request request, Response response) {
+    public Map<String,Object> show(Request request, Response response) {
         String id = request.getUrlDecodedHeader("id");
         UUID uuid = UUID.fromString( id );
         Cache cache = dbService.findCacheById( uuid );
-        Map<String,String> map = new LinkedHashMap<>();
-        map.put("id", cache.id.toString() );
-        map.put("path", cache.path );
-        map.put("response", cache.response);
-        map.put("lazy", String.valueOf( cache.lazy ) );
-        map.put("published_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.publishedAt ) );
-        map.put("created_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.createdAt ) );
-        map.put("expired_at", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( cache.expiredAt ) );
+        Map<String,Object> responseData = createResponseMap("success", "001");
 
-        return map;
+        Map<String,Object> cacheData = new LinkedHashMap<>();
+        cacheData.put("id", cache.id.toString() );
+        cacheData.put("path", cache.path );
+        cacheData.put("response", cache.response);
+        cacheData.put("lazy", String.valueOf( cache.lazy ) );
+        cacheData.put("published_at", formatDate( cache.publishedAt ) );
+        cacheData.put("created_at", formatDate( cache.createdAt ) );
+        cacheData.put("expired_at", formatDate(cache.expiredAt));
+
+        responseData.put("cache", cacheData );
+
+        return responseData;
     }
 
     public void update(Request request, Response response) {
@@ -78,5 +86,22 @@ public class CacheController {
     public void delete(Request request, Response response) {
         // Use this ONLY if not using wrapped responses.  Wrapped responses WILL contain content.
 //		response.setResponseNoContent();
+    }
+
+
+    private Map<String,Object> createResponseMap(String status, String code) {
+        Map<String,Object> response = new LinkedHashMap<>();
+        response.put( "status", status );
+        response.put( "status_code", code );
+
+        return response;
+    }
+
+    private String formatDate(Date date) {
+        if ( date != null ) {
+            return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( date );
+        } else {
+            return null;
+        }
     }
 }
