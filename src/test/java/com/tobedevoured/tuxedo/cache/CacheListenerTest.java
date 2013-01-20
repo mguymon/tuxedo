@@ -78,6 +78,7 @@ public class CacheListenerTest {
     @Test
     public void testCacheMessage() throws InterruptedException {
         Cache cache = new Cache();
+        cache.generateId();
         cache.path = "test path" ;
         listener1.publish( cache );
         
@@ -102,6 +103,7 @@ public class CacheListenerTest {
     @Test
     public void testCacheMerge() throws InterruptedException {
         Cache cache = new Cache();
+        cache.generateId();
         cache.path = "test merge";
         listener3.publish( cache );
         
@@ -114,7 +116,7 @@ public class CacheListenerTest {
         cache.publishedAt = new Date();
         listener1.publish( cache );
         
-        Thread.sleep(1500);
+        Thread.sleep(5000);
         
         Cache queried = dbService1.findCacheByPath( cache.path ).get(0);
         assertNotNull("Cache should be found", queried);

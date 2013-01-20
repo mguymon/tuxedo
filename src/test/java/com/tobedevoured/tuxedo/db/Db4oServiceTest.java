@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
+import com.tobedevoured.tuxedo.api.Api;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +36,31 @@ public class Db4oServiceTest {
     public void stop() {
         service.stop();
     }
-    
+
+    @Test
+    public void getApi() {
+        Api api1 = service.getApi();
+        assertNotNull( api1 );
+
+        service.store(api1);
+
+        Api api2 = service.getApi();
+        assertEquals( api1.id, api2.id );
+
+        List<Api> apis = service.all(Api.class);
+        assertEquals("A new API should not be created", 1, apis.size());
+
+        api2.version = 3;
+        api2.startedAt = new Date();
+        service.store(api2);
+
+        assertEquals("A new API should not be created", 1, apis.size());
+
+        Api api3 = service.getApi();
+        assertEquals(Integer.valueOf(api2.version), Integer.valueOf(api3.version));
+        assertEquals(api2.startedAt, api3.startedAt);
+    }
+
     @Test
     public void findCacheById() {
         Cache cache = new Cache();

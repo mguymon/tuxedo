@@ -1,5 +1,6 @@
 package com.tobedevoured.tuxedo.api;
 
+import com.google.inject.Inject;
 import com.strategicgains.restexpress.Request;
 import com.strategicgains.restexpress.Response;
 
@@ -7,29 +8,19 @@ import com.tobedevoured.tuxedo.cache.Cache;
 import com.tobedevoured.tuxedo.db.Db4oService;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 
 import java.util.*;
 
 /**
  *
  */
-public class CacheController {
+public class CacheController extends BaseController {
 
     Db4oService dbService;
 
+    @Inject
     public CacheController(Db4oService dbService) {
         this.dbService = dbService;
-    }
-
-    public String create(Request request, Response response) {
-        String newId = "42"; // Assume a new object created.
-        response.setResponseCreated();
-        // Include the Location header...
-        String locationUrl = request.getNamedUrl(HttpMethod.GET, "apiOrderUri");
-        //response.addLocationHeader(LinkUtils.formatUrl(locationUrl, "orderId", newId));
-        // Return the newly-created ID...
-        return newId;
     }
 
     /**
@@ -40,10 +31,10 @@ public class CacheController {
      */
     public Map<String,Object> index(Request request, Response response) {
 
-        Map<String,Object> data = createResponseMap("success", "001");
+        Map<String,Object> data = createResponseMap(Status.SUCCESS);
 
         List<Map<String,String>> cacheData = new ArrayList();
-        List<Cache> caches = dbService.all();
+        List<Cache> caches = dbService.all(Cache.class);
         for ( Cache cache: caches ) {
             Map<String,String> map = new LinkedHashMap<>();
             map.put("id", cache.id.toString() );
@@ -59,21 +50,36 @@ public class CacheController {
     }
 
     public Map<String,Object> show(Request request, Response response) {
+        Map<String,Object> responseData = null;
         String id = request.getUrlDecodedHeader("id");
-        UUID uuid = UUID.fromString( id );
-        Cache cache = dbService.findCacheById( uuid );
-        Map<String,Object> responseData = createResponseMap("success", "001");
+        if ( id != null) {
+            Cache cache = dbService.findCacheById( id );
+            responseData = createResponseMap(Status.SUCCESS);
 
-        Map<String,Object> cacheData = new LinkedHashMap<>();
-        cacheData.put("id", cache.id.toString() );
-        cacheData.put("path", cache.path );
-        cacheData.put("response", cache.response);
-        cacheData.put("lazy", String.valueOf( cache.lazy ) );
-        cacheData.put("published_at", formatDate( cache.publishedAt ) );
-        cacheData.put("created_at", formatDate( cache.createdAt ) );
-        cacheData.put("expired_at", formatDate(cache.expiredAt));
+            Map<String, Object> cacheData = createCacheMap(cache);
 
-        responseData.put("cache", cacheData );
+            responseData.put("cache", cacheData );
+
+        } else {
+            responseData = createResponseMap(Status.INVALID_ID);
+            responseData.put("status_detail", "ID was missing");
+        }
+        return responseData;
+    }
+
+    public Map<String, Object> create(Request request, Response response) {
+        Cache cache = new Cache();
+
+        // set cache vals from param
+        // store cache
+        // send to cluster
+        cache.path = getParam(request,"path");
+        cache.lazy = "true".equalsIgnoreCase( getParam(request,"lazy"));
+
+        dbService.store(cache);
+
+        Map<String,Object> responseData = createResponseMap(Status.SUCCESS);
+        responseData.put( "cache", createCacheMap(cache) );
 
         return responseData;
     }
@@ -88,20 +94,16 @@ public class CacheController {
 //		response.setResponseNoContent();
     }
 
-
-    private Map<String,Object> createResponseMap(String status, String code) {
-        Map<String,Object> response = new LinkedHashMap<>();
-        response.put( "status", status );
-        response.put( "status_code", code );
-
-        return response;
-    }
-
-    private String formatDate(Date date) {
-        if ( date != null ) {
-            return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( date );
-        } else {
-            return null;
-        }
+    protected Map<String, Object> createCacheMap(Cache cache) {
+        Map<String,Object> cacheData = new LinkedHashMap<>();
+        cacheData.put("id", cache.id.toString() );
+        cacheData.put("path", cache.path );
+        cacheData.put("response", cache.response);
+        cacheData.put("lazy", String.valueOf(cache.lazy) );
+        cacheData.put("published_at", formatDate( cache.publishedAt ) );
+        cacheData.put("expired_at", formatDate(cache.expiredAt));
+        cacheData.put("created_at", formatDate( cache.createdAt ) );
+        cacheData.put("update_at", formatDate( cache.updatedAt ) );
+        return cacheData;
     }
 }

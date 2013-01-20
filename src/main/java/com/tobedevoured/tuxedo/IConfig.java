@@ -14,4 +14,5 @@ public interface IConfig {
 
     Boolean isDbDebug();
 
+    int getApiPort();
 }

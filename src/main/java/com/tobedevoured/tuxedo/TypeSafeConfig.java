@@ -15,12 +15,14 @@ public class TypeSafeConfig implements IConfig {
 	public static final String PROXY_KEY = "tuxedo.proxy.";
 	public static final String WEB_KEY = "tuxedo.web.";
 	public static final String DB_KEY = "tuxedo.db.";
+    public static final String API_KEY = "tuxedo.api.";
 	
 	public int proxyPort;
-	public String webHost;
-	public int webPort;
-	public String dbPath;
-	public Boolean isDbDebug;
+    public int apiPort;
+    public String webHost;
+    public int webPort;
+    public String dbPath;
+    public Boolean isDbDebug;
 	
 	Config config;
 	
@@ -35,6 +37,7 @@ public class TypeSafeConfig implements IConfig {
 		logger.debug( "config: {}", config );
 		
 		proxyPort = config.getInt( StringUtils.join(PROXY_KEY, "port") );
+        apiPort = config.getInt( StringUtils.join(API_KEY, "port") );
 		webHost = config.getString( StringUtils.join(WEB_KEY, "host") );
 		webPort = config.getInt( StringUtils.join(WEB_KEY , "port") );
 		dbPath = config.getString(StringUtils.join(DB_KEY, "path"));
@@ -56,7 +59,11 @@ public class TypeSafeConfig implements IConfig {
     public String getWebHostAndPort() {
 		return StringUtils.join(getWebHost(), ":", getWebPort());
 	}
-	
+
+    public int getApiPort() {
+        return apiPort;
+    }
+
     public String getDbPath() {
         return dbPath;
     }

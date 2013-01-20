@@ -11,7 +11,7 @@ public class Cache implements Serializable {
     private static final long serialVersionUID = 9083954804407539043L;
 
     @Indexed
-    public UUID id;
+    public String id;
     
     @Indexed
     public String path;
@@ -20,21 +20,14 @@ public class Cache implements Serializable {
     public Date expiredAt;
 
     @Indexed
-    public Date publishedAt;
+    public Date publishedAt = new Date();
     
     public String response;
-    public Boolean lazy;
+    public Boolean lazy = Boolean.FALSE;
     public Date createdAt;
     public Date updatedAt;
-    
-    
-    public Cache() {
-        this(UUID.randomUUID());
-    }
 
-    public Cache(UUID messageId) {
-        this.id = messageId;
-        this.publishedAt = new Date();
-        this.lazy = Boolean.FALSE;
+    public void generateId() {
+        id = UUID.randomUUID().toString();
     }
 }

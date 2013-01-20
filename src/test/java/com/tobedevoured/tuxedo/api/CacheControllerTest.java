@@ -1,16 +1,12 @@
 package com.tobedevoured.tuxedo.api;
 
+import com.tobedevoured.tuxedo.RestClient;
 import com.tobedevoured.tuxedo.ServiceException;
 import com.tobedevoured.tuxedo.TypeSafeConfig;
 import com.tobedevoured.tuxedo.cache.Cache;
 import com.tobedevoured.tuxedo.command.DependencyManager;
 import com.tobedevoured.tuxedo.db.Db4oService;
 import com.tobedevoured.tuxedo.db.IDbService;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +19,9 @@ import static org.junit.Assert.assertThat;
 
 /**
  */
-public class RestServiceTest {
+public class CacheControllerTest {
+
+    RestClient restClient = DependencyManager.instance.getInstance(RestClient.class);
     TypeSafeConfig config = DependencyManager.instance.getInstance(TypeSafeConfig.class);
     Db4oService dbService = (Db4oService)DependencyManager.instance.getInstance(IDbService.class);
     RestService restService = DependencyManager.instance.getInstance(RestService.class);
@@ -57,12 +55,7 @@ public class RestServiceTest {
         cache3.path = "/cache3";
         dbService.store(cache3);
 
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:9922/api/1/caches.json");
-        HttpResponse response = client.execute(request);
-
-        String content = IOUtils.toString( response.getEntity().getContent() );
-
+        String content = restClient.get("/api/1/caches.json");
 
         assertThat( content, containsString("\"status\":\"success\""));
         assertThat( content, containsString("\"status_code\":\"001\""));
@@ -81,12 +74,7 @@ public class RestServiceTest {
         cache1.path = "/cache1";
         dbService.store(cache1);
 
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet("http://localhost:9922/api/1/caches/"+ cache1.id.toString() + ".json");
-        HttpResponse response = client.execute(request);
-
-        String content = IOUtils.toString( response.getEntity().getContent() );
-
+        String content = restClient.get("/api/1/caches/"+ cache1.id.toString() + ".json");
 
         assertThat( content, containsString("\"status\":\"success\""));
         assertThat( content, containsString("\"status_code\":\"001\""));

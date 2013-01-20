@@ -8,21 +8,31 @@ import com.tobedevoured.command.RunException;
 import com.tobedevoured.command.Runner;
 import com.tobedevoured.command.annotation.ByYourCommand;
 import com.tobedevoured.command.annotation.Command;
+import com.tobedevoured.tuxedo.IConfig;
 import com.tobedevoured.tuxedo.ServiceException;
 import com.tobedevoured.tuxedo.db.Db4oService;
 import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Date;
 
 @ByYourCommand
 public class RestService implements IApiService {
+    private static Logger logger = LoggerFactory.getLogger(RestService.class);
 
-    CacheController controller;
+    IConfig config;
+    CacheController cacheController;
+    StatusController  statusController;
     RestExpress server;
     Db4oService dbService;
 
     @Inject
-    public RestService(Db4oService dbService) {
+    public RestService(IConfig config, Db4oService dbService, CacheController cacheController, StatusController statusController) {
+        this.config = config;
         this.dbService = dbService;
-        controller = new CacheController(dbService);
+        this.cacheController = cacheController;
+        this.statusController = statusController;
     }
 
     @Command
@@ -32,6 +42,14 @@ public class RestService implements IApiService {
             this.dbService.start();
         }
 
+        Api api = this.dbService.getApi();
+        api = this.dbService.getApi();
+        api.version = 1;
+        api.startedAt = new Date();
+        this.dbService.store(api);
+
+        logger.info("API id:{} version:{}", api.id, api.version);
+
         server = new RestExpress()
                 .setName("API")
                 .setDefaultFormat("json")
@@ -40,25 +58,32 @@ public class RestService implements IApiService {
         //        .addPostprocessor(new LastModifiedHeaderPostprocessor())
                 .addMessageObserver(new SimpleConsoleLogMessageObserver());
 
-        server.uri("/api/1/caches.{format}", controller)
-                .action("index", HttpMethod.GET)
-                .name("index");
 
-        server.uri("/api/1/caches.{format}", controller)
+        // Status routes
+        server.uri("/api/1/status.{format}", statusController)
+                .action("show", HttpMethod.GET)
+                .name("status_show");
+
+        // Cache routes
+        server.uri("/api/1/caches.{format}", cacheController)
+                .action("index", HttpMethod.GET)
+                .name("cache_index");
+
+        server.uri("/api/1/caches.{format}", cacheController)
                 .method(HttpMethod.POST);
 
 
-        server.uri("/api/1/caches/{id}.{format}", controller)
+        server.uri("/api/1/caches/{id}.{format}", cacheController)
                 .action("show", HttpMethod.GET)
-                .name("show");
+                .name("cache_show");
 
 
-        server.uri("/api/1/caches/{id}.{format}", controller)
+        server.uri("/api/1/caches/{id}.{format}", cacheController)
                 .action("update", HttpMethod.PUT)
-                .name("update");
+                .name("cache_update");
 
 
-        server.bind(9922);
+        server.bind(config.getApiPort());
     }
 
     public void stop() throws ServiceException {

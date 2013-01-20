@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.db4o.ext.ObjectInfo;
+import com.tobedevoured.tuxedo.api.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +39,31 @@ public class Db4oService implements IDbService {
         this.config = config;
         
     }
-    
-    public void store(Cache cache) {
+
+    public Api store(Api api) {
         Date now = new Date();
+
+        if ( api.id == null ) {
+            api.id = UUID.randomUUID().toString();
+            logger.debug( "store - Generated API id: {}", api.id);
+        }
+
+        if ( api.createdAt == null ) {
+            api.createdAt = now;
+        }
+
+        rootContainer.store(api);
+
+        return api;
+    }
+    
+    public Cache store(Cache cache) {
+        Date now = new Date();
+
+        if ( cache.id == null ) {
+            cache.generateId();
+        }
+
         if ( cache.expiredAt == null && cache.publishedAt == null) {
             cache.publishedAt = now;
         }
@@ -56,16 +80,48 @@ public class Db4oService implements IDbService {
         } finally {
             container.close();
         }
+
+        return cache;
     }
 
-    public List<Cache> all() {
+    public <T> List<T> all(Class<T> clazz) {
         Query query = rootContainer.query();
-        query.constrain(Cache.class);
+        query.constrain(clazz);
 
         return query.execute();
     }
-    
-    public Cache findCacheById(final UUID id) {
+
+    public Api getApi() {
+        List<Api> apis = all(Api.class);
+        if (apis.size() > 0 ) {
+            return apis.get(0);
+        } else {
+
+            Api api = store(new Api());
+            logger.info("Created new API instance: {}", api.id);
+
+            return api;
+        }
+    }
+
+    public ObjectInfo getInfo(Object object) {
+        return rootContainer.ext().getObjectInfo(object);
+    }
+
+    public Api findApiById(final String id ) {
+        Query query = rootContainer.query();
+        query.constrain(Api.class);
+        query.descend("id").constrain(id).equal();
+
+        ObjectSet<Api> result = query.execute();
+        if ( result.size() > 0 ) {
+            return result.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public Cache findCacheById(final String id) {
         Query query = rootContainer.query();
         query.constrain(Cache.class);
         query.descend("id").constrain(id).equal();
